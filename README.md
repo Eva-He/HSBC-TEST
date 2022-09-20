@@ -4,7 +4,7 @@ User Manual
 
 - default username: admin, password: 1234
 
-![1663687944898](.\doc\image\1663687944898.png)
+![1663687944898](https://github.com/Eva-He/HSBC-TEST/blob/master/doc/image/1663687944898.png)
 
 
 
