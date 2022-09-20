@@ -1,7 +1,22 @@
+Task Assessment:
+
+1. create user   	             -- completed
+
+2. delete user                    -- completed
+3. create role                     -- completed
+4. delete role                     --  completed
+5. add role to user            -- completed
+6. authentication              -- completed
+7. invalidate                       --  completed
+8. check role                      -- completed
+9. all roles                          -- completed
+
+
 User Manual
 
 1 **login page** 
 
+- login via http://localhost:9002/login.html
 - default username: admin, password: 1234
 
 ![1663687944898](https://github.com/Eva-He/HSBC-TEST/blob/master/doc/image/1663687944898.png)
@@ -13,8 +28,7 @@ User Manual
 - home page includes user list and role list 
 
 - if not login, will redirect to the login page
-- user can only access the APIs (add, edit, delete, read) based on the roles assigned
-- admin got 4 roles including create, delete, edit, read so that can access all the APIs mentioned above
+- user can only access the APIs with assigned roles 
 
 ![1663688452297](https://github.com/Eva-He/HSBC-TEST/blob/master/doc/image/1663688452297.png)
 
