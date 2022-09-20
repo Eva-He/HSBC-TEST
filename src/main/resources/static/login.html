@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+    <script src="../js/vue.js"></script>
+    <script src="../js/axios-0.18.0.js"></script>
+    <script src="element-ui/lib/index.js"></script>
+    <link type="text/css" rel="styleSheet" href="element-ui/lib/theme-chalk/index.css"/>
+</head>
+<body style="background-size: auto; background-image: url(../imgs/reg_bg_min.jpg);">
+<div id="app">
+    <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="150px" class="demo-ruleForm">
+        <el-form-item label="USERNAME  " prop="username" class="item" :rules="[
+      { required: true, message: 'username can not be empty'}]">
+            <el-input type="text" v-model="ruleForm.username" autocomplete="off" style="width: 220px"></el-input>
+        </el-form-item>
+        <el-form-item label="PASSWORD  " prop="password" class="item" :rules="[
+      { required: true, message: 'password can not be empty'}]">
+            <el-input type="password" v-model="ruleForm.password" autocomplete="off" style="width: 220px"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="submitForm('ruleForm')">CONFIRM</el-button>
+            <el-button @click="resetForm('ruleForm')">CANCEL</el-button>
+        </el-form-item>
+    </el-form>
+
+</div>
+</body>
+<style>
+    .item .el-form-item__label {
+        color: white;
+        font-style: oblique;
+        font-size: large;
+    }
+
+    .demo-ruleForm {
+        margin: 20% auto;
+        margin-left: 40%;
+    }
+</style>
+<script>
+    new Vue({
+        el: '#app',
+
+        mounted: function () {
+
+        },
+        methods: {
+
+            validatePass(rule, value, callback) {
+                console.log('validatePass')
+                if (value === '') {
+                    callback(new Error('Enter password'));
+                } else {
+                    this.ruleForm.password = value
+                    callback();
+
+                }
+            },
+            validateUsername(rule, value, callback) {
+                console.log('validateUsername')
+                if (value === '') {
+                    callback(new Error('Enter username'));
+                } else {
+                    this.ruleForm.username = value
+                    console.log(121212)
+                    callback();
+                }
+            },
+
+            submitForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        console.log("submit login")
+                        console.log(this.ruleForm.username);
+                        //请求后台
+                        axios.post("/login", {
+                            username: this.ruleForm.username,
+                            password: this.ruleForm.password
+                        }).then(function (response) {
+                            let data = response.data;
+                            console.log("login data= ", data)
+                            if (data.code === 200) {
+                                window.localStorage.setItem('userInfo', JSON.stringify(data))
+                               window.location.href = "/home.html"
+                                return true;
+                            } else {
+                                alert("password incorrect")
+                                return false;
+                            }
+                        })
+                            .catch(function (error) {
+                                console.log(error);
+                            });
+
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                console.log("reset form");
+                this.$refs[formName].resetFields();
+            }
+        },
+        data: {
+            message: 'Hello Vue!',
+
+            ruleForm: {
+                username: '',
+                password: '',
+            },
+            rules: {
+                checkUsername: [
+                    {validator: this.validateUsername, trigger: 'blur'}
+                ],
+                checkPass: [
+                    {validator: this.validatePass, trigger: 'blur'}
+                ]
+            }
+        },
+    })
+
+    function printLog(obj) {
+        let _this = obj
+        console.log(_this.fitType)
+    }
+</script>
+</html>

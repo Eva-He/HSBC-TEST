@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>user</title>
+    <style>
+        .el-table .warning-row {
+            background: oldlace;
+        }
+
+        .el-table .success-row {
+            background: #f0f9eb;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<div id="app">
+    <el-row>
+        <el-button type="primary" plain @click="dialogVisible = true; user= {
+                    id:'',
+                    username: '',
+                    password: '',
+                    roleList: []
+                };checkedRoles=[]">ADD USER</el-button>
+    </el-row>
+    <!--ADD USER DIALOG-->
+    <el-dialog
+            title="ADD USER"
+            :visible.sync="dialogVisible"
+            width="30%"
+    >
+        <el-form ref="form" :model="user" label-width="150px">
+            <el-form-item label="USERNAME">
+                <el-input v-model="user.username"></el-input>
+            </el-form-item>
+
+            <el-form-item label="PASSWORD">
+                <el-input v-model="user.password"  type="password"></el-input>
+            </el-form-item>
+
+            <el-form-item label="ROLES">
+                <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange">ALL</el-checkbox>
+                <div style="margin: 15px 0;"></div>
+                <el-checkbox-group v-model="checkedRoles" @change="handleCheckedRolesChange">
+                    <el-checkbox v-for="role in roles" :label="role" :key="role">{{role}}</el-checkbox>
+                </el-checkbox-group>
+            </el-form-item>
+
+            <el-form-item>
+                <el-button type="primary" @click="addUser">CONFIRM</el-button>
+                <el-button @click="dialogVisible = false">CANCEL</el-button>
+            </el-form-item>
+        </el-form>
+
+    </el-dialog>
+
+    <el-dialog
+            title="EDIT"
+            :visible.sync="dialogVisible2"
+            width="30%"
+    >
+        <el-form ref="form" :model="user" label-width="150px">
+            <el-form-item label="ROLES">
+                <div style="margin: 15px 0;"></div>
+                <br>
+                <el-checkbox-group v-model="checkedRoles" @change="handleCheckedRolesChange">
+                    <el-checkbox v-for="role in roles" :label="role" :key="role">{{role}}</el-checkbox>
+                </el-checkbox-group>
+            </el-form-item>
+
+            <el-form-item>
+                <el-button type="primary" @click="addRoleToUser">CONFIRM</el-button>
+                <el-button @click="dialogVisible2 = false">CANCEL</el-button>
+            </el-form-item>
+        </el-form>
+
+    </el-dialog>
+
+
+    <!--TABLE-->
+    <template>
+        <el-table
+                :data="tableData"
+                style="width: 100%"
+                :row-class-name="tableRowClassName"
+                @selection-change="handleSelectionChange">
+            <el-table-column
+                    width="55">
+            </el-table-column>
+            <el-table-column
+                    type="index"
+                    width="50">
+            </el-table-column>
+
+            <el-table-column
+                    prop="username"
+                    label="USERNAME"
+                    align="center"
+            >
+            </el-table-column>
+
+            <el-table-column
+                    prop="roleList"
+                    align="center"
+                    label="ROLES"
+            >
+                <template slot-scope="scope">
+                    <el-tag style="margin-right: 20px"
+                            v-for="role,i in scope.row.roleList"
+                            :type="i%2 ===0 ? 'primary' : 'success'"
+                            disable-transitions>{{role.roleName}}</el-tag>
+                </template>
+
+            </el-table-column>
+
+            <el-table-column
+                    align="center"
+                    label="OPERATION">
+
+                <template slot-scope="scope">
+                <el-row>
+                    <el-button type="primary" @click="findUserById(scope.row)">EDIT</el-button>
+                    <el-button type="danger" @click="deleteUser(scope.row)">DELETE</el-button>
+                </el-row>
+                </template>
+
+            </el-table-column>
+
+        </el-table>
+    </template>
+
+</div>
+
+
+<script src="js/vue.js"></script>
+<script src="element-ui/lib/index.js"></script>
+<link rel="stylesheet" href="element-ui/lib/theme-chalk/index.css">
+
+<script src="js/axios-0.18.0.js"></script>
+
+<script>
+
+    const rolesOptions = ['create', 'delete', 'edit', 'read'];
+    new Vue({
+        el: "#app",
+
+        mounted(){
+            this.findUser();
+            this.getRoleList();
+        },
+
+        methods: {
+
+            getRoleList(){
+                var _this =this
+                axios({
+                    method:"get",
+                    url:"/getRoles",
+                }).then(resp =>{
+                    let roleObjs = resp.data.data;
+                    for (let i = 0; i < roleObjs.length; i++) {
+                        _this.roles[i] = roleObjs[i].roleName
+                    }
+                })
+            },
+
+            addRoleToUser() {
+                console.log("role",this.checkedRoles)
+                var _this = this;
+
+                let roless = []
+                for (let i = 0; i < this.checkedRoles.length; i++) {
+                    roless[i]={
+                        roleName:   this.checkedRoles[i]
+                    }
+                }
+
+                axios.post("/updateRoleToUser", {
+                    id : _this.tmpUserId,
+                    roleList: roless
+                }).then(function (resp) {
+                    if(resp.data.code === 200){
+                        _this.$message({
+                            message: 'update role to user succeed',
+                            type: 'success'
+                        });
+                        _this.dialogVisible2 = false;
+                        _this.findUser();
+                    }else {
+                        _this.$message({
+                            message: resp.data.msg,
+                            type: 'error'
+                        });
+                    }
+                })
+            },
+
+            findUser(){
+                axios.get("/findUser", {
+                }).then(resp =>{
+                    this.tableData = resp.data.data;
+                }).catch(() => {
+                    this.tableData = []
+                });
+
+            },
+
+               async findUserById(row){
+                this.tmpUserId = row.id
+                var _this = this;
+                 await axios.get("/findUserById?id="+ _this.tmpUserId, {
+                }).then(resp =>{
+                     _this.checkedRoles = []
+                    let roleList = resp.data.data.roleList;
+                    for (let i = 0; i < roleList.length; i++) {
+                        _this.checkedRoles[i] = roleList[i].roleName
+                    }
+                })
+                   this.dialogVisible2 = true
+
+
+            },
+
+            tableRowClassName({row, rowIndex}) {
+                if (rowIndex === 1) {
+                    return 'warning-row';
+                } else if (rowIndex === 3) {
+                    return 'success-row';
+                }
+                return '';
+            },
+
+            handleSelectionChange(val) {
+                this.multipleSelection = val;
+
+            },
+
+            //add user
+            addUser() {
+                console.log(this.user);
+
+                let roless = []
+                for (let i = 0; i < this.checkedRoles.length; i++) {
+                    roless[i]={
+                     roleName:   this.checkedRoles[i]
+                    }
+                }
+
+                var _this = this;
+                axios.post("/addUser", {
+                    username: _this.user.username,
+                    password: _this.user.password,
+                    roleList: roless
+                }).then(function (resp) {
+                    if(resp.data.data === "success"){
+                        _this.dialogVisible = false;
+                        _this.findUser();
+                        _this.$message({
+                            message: 'add user success',
+                            type: 'success'
+                        });
+                    }
+                    if(resp.data.data === "user exits"){
+                        _this.$message({
+                            message: resp.data.data,
+                            type: 'error'
+                        });
+                    }
+                })
+            },
+
+            deleteUser(row){
+                this.$confirm('Confirm delete?', 'NOTIFICATION', {
+                    confirmButtonText: 'Confirm',
+                    cancelButtonText: 'Cancel',
+                    type: 'warning'
+                }).then(() => {
+                    var _this = this;
+                    axios.post("/deleteUser", {
+                        id: row.id,
+                        //username: _this.user.username
+                    }).then(function (resp) {
+                        if(resp.data.data == "success"){
+                            _this.findUser();
+                            _this.$message({
+                                message: 'delete succeed',
+                                type: 'success'
+                            });
+
+                        }
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: 'cancel delete'
+                    });
+                });
+
+            },
+
+            //pagination
+            handleSizeChange(val) {
+                //console.log(`每页 ${val} 条`);
+                // 重新设置每页显示的条数
+                this.pageSize  = val;
+                this.findUser();
+            },
+            handleCurrentChange(val) {
+                //console.log(`当前页: ${val}`);
+                // 重新设置当前页码
+                this.currentPage  = val;
+                this.findUser();
+            },
+
+            handleCheckAllChange(val) {
+                this.checkedRoles = val ? rolesOptions : [];
+                this.isIndeterminate = false;
+            },
+
+            handleCheckedRolesChange(value) {
+                this.user.roleList = value;
+                let checkedCount = value.length;
+                this.checkAll = checkedCount === this.roles.length;
+                this.isIndeterminate = checkedCount > 0 && checkedCount < this.roles.length;
+                console.log(this.user.roleList)
+            }
+
+        },
+        data() {
+            return {
+                roles: [],
+                checkAll: false,
+                checkedRoles: [],
+                //roles: rolesOptions,
+                isIndeterminate: true,
+
+                pageSize:5,
+                totalCount:100,
+                currentPage: 1,
+                dialogVisible: false,
+
+                dialogVisible2: false,
+
+
+                user: {
+                    id:'',
+                    username: '',
+                    password: '',
+                    roleList: []
+                },
+
+                role:{
+                    id :'',
+                    roleName:''
+                },
+
+                tableData: [],
+                tmpUserId : ''
+            }
+        }
+    })
+
+</script>
+
+</body>
+</html>
