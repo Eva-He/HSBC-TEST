@@ -1,4 +1,4 @@
-package config;
+package com.hsbc.task.config;
 
 import com.alibaba.fastjson.JSON;
 import com.hsbc.task.cache.MiddleWareSimulator;

@@ -1,4 +1,4 @@
-package config;
+package com.hsbc.task.config;
 
 import com.hsbc.task.cache.MiddleWareSimulator;
 import com.hsbc.task.entity.User;
